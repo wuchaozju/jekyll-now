@@ -1,6 +1,7 @@
 ---
 layout: post
-title: You're up and running!
+title: 为什么我们会信星座？
+published: true
 ---
 
 Next you can update your site name, avatar and other options using the _config.yml file in the root of your repository (shown below).
