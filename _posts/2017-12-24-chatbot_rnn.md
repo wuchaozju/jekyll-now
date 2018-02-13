@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 利用Tensorflow实现聊天机器人 1/3 - 循环神经网络 Recurrent Neural Network
-published: false
+published: true
 ---
 
 在这三篇系列文章中，我将用Tensorflow来一步步实现一个聊天机器人（Chatbot）。
