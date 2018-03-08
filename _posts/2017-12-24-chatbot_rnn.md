@@ -16,12 +16,12 @@ published: false
 
 传统（深度）神经网络的一个问题是忽略了数据本身内在的时序性（或者换种说法——它忽略了数据在时序上的相关性）：例如对于一个视频来说，除了每一帧的内容，这些帧的前后顺序也很重要；而对于一段文字来说，除了一个个单词本身的意思，单词间的前后顺序也很重要。
 
-Recurrent neural networks（RNN）就是处理这类时序数据的神经网络模型，其本质上，就是将之前读到的数据，编码为一种状态，而将此状态，也作为输入，与当前时刻的另一个数据点，作为神经网络的输入，如下图所示：
+Recurrent neural networks（RNN）就是处理这类时序数据的神经网络模型（它也是一个端到端的网络，即对Loss函数的求导可以作用到网络连接的每个权重参数上，如果不明白端到端的含义，可以参考[这篇知乎的答疑](https://www.zhihu.com/question/51435499)），其本质上，就是将之前读到的数据，编码为一种状态，而将此状态，也作为输入，与当前时刻的另一个数据点，作为神经网络的输入，如下图所示：
 
 ![RNN网络的输入和数据：注意中间这个神经网络节点，与传统神经网络不同，它的输入除了输入层之外，还有自身在上一个时刻的状态]({{"/assets/rnn.png"|xxx.xxx}})
 
-RNN可以处理不同长度的数据输出（例如不同长度的句子），找到这些数据在时间上的关联性（一个句子开始时候的词和后面词的关系），然后利用从这些信息，去完成各种工作（如翻译到成一种语言、回答问题等等），这种RNN网络的能力是很强的（与图灵机等价[Siegelmann and Sontag 1991]）。
-differentiable end to end. The derivative of the loss function can be calculated with respect to each of the parameters (weights) in the model
+RNN可以处理不同长度的数据输出（例如不同长度的句子），找到这些数据在时间上的关联性（一个句子开始时候的词和后面词的关系），然后利用从这些信息，去完成各种工作（如翻译到成一种语言、回答问题等等），这种RNN网络的能力是很强的（[与图灵机等价](http://people.cs.georgetown.edu/~cnewport/teaching/cosc844-spring17/pubs/nn-tm.pdf)）。
+
 
 RNN的原理就简单到这里，如果想详细了解，我建议去读者看看[这篇论文](ref: a critical review of recurrent neural networks for sequence learning)。
 
