@@ -8,30 +8,39 @@ published: false
 
 聊天机器人是自然语言处理（Natural Language Processing -NLP）的一个重要应用，[代表了未来人机交互的方向](https://www.inc.com/ben-parr/7-reasons-why-everyone-in-tech-is-obsessed-with-chatbots.html)——或许在不久的将来，我们无需安装和打开任何App，只需要跟某一个聊天机器人对话，就能实现所有的日常工作（订票、搜索、付款等）。
 
-目前的技术，还不能做出一个完美的聊天机器人（实际上离完美差很远，TODO：ref），本文实现的也是一个较为粗糙的聊天机器人，但通过它，我们可以了解其基本概念，在最后一篇文章中，也会提出一些改进思路。
+目前的技术，还不能做出一个完美的聊天机器人（实际上[离完美差很远](https://medium.com/swlh/why-chatbots-suck-f9dad7a54d5c)），本文实现的也是一个较为粗糙的聊天机器人.但通过它，我们可以了解其基本概念，而在最后一篇文章中，也会提出一些改进思路。
 
-在这三篇文章中，我将会重点介绍RNN（本文）、Seq2Seq（下一篇）的基本概念，以及训练一个聊天机器人的细节（第三篇），本文需要神经网络和Tensorflow的基础，如果需要的话，建议首先阅读以下材料：
+在这三篇文章中，我将会重点介绍RNN（本文）、Seq2Seq（下一篇）的基本概念，以及训练一个聊天机器人的细节（第三篇），本文需要神经网络和Tensorflow的基础，建议首先阅读以下材料：
 * 神经网络和深度学习的介绍：[Neural network and deep learning](http://neuralnetworksanddeeplearning.com/chap1.html)
 * Tensorflow的入门教程：[Getting started with Tensorflow](https://www.tensorflow.org/get_started/)
 
-传统（深度）神经网络的一个问题是忽略了数据本身内在的时序性（或者换种说法——它忽略了数据在时序上的相关性）：例如对于一个视频来说，除了每一帧的内容，这些帧的前后顺序也很重要；而对于一段文字来说，除了一个个单词本身的意思，单词间的前后顺序也很重要。
+传统（深度）神经网络的一个问题是忽略了数据在时序上的相关性：例如对于一个视频来说，除了每一帧的内容，这些帧的前后顺序也很重要；而对于一段文字来说，除了一个个单词本身的意思，单词间的前后顺序也很重要。
 
-Recurrent neural networks（RNN）就是处理这类时序数据的神经网络模型（它也是一个端到端的网络，即对Loss函数的求导可以作用到网络连接的每个权重参数上，如果不明白端到端的含义，可以参考[这篇知乎的答疑](https://www.zhihu.com/question/51435499)），其本质上，就是将之前读到的数据，编码为一种状态，而将此状态，也作为输入，与当前时刻的另一个数据点，作为神经网络的输入，如下图所示：
+Recurrent neural networks（RNN）就是处理这类时序数据的神经网络模型（它也是一个端到端的网络，即对Loss函数的求导可以作用到网络连接的每个权重参数上，如果不明白端到端的含义，可以参考[这篇知乎的答疑](https://www.zhihu.com/question/51435499)），其本质上，就是将之前读到的数据，编码（Encode）为一种状态（Hidden state），而将此状态，也作为输入，与当前时刻的数据点，作为神经网络的输入，如下图所示：
 
-![RNN网络的输入和数据：注意中间这个神经网络节点，与传统神经网络不同，它的输入除了输入层之外，还有自身在上一个时刻的状态]({{"/assets/rnn.png"|xxx.xxx}})
+![RNN网络的输入和数据：注意中间这个神经网络节点，与传统神经网络不同，它的输入除了输入层之外，还有自身在上一个时刻的状态]({{"/assets/rnn.png"|RNN网络}})
 
-RNN可以处理不同长度的数据输出（例如不同长度的句子），找到这些数据在时间上的关联性（一个句子开始时候的词和后面词的关系），然后利用从这些信息，去完成各种工作（如翻译到成一种语言、回答问题等等），这种RNN网络的能力是很强的（[与图灵机等价](http://people.cs.georgetown.edu/~cnewport/teaching/cosc844-spring17/pubs/nn-tm.pdf)）。
+所以一个RNN网络，它的输入有两个：输入数据和自身上一个时刻的状态；输出也有两个：数据输出和这一时刻网络的状态。模型运行时，网络不停循环地获取当前输入，加上前一个时刻的状态，进行计算以获得新的状态，并将此状态，再放入到下一个时刻的网络中作为输入。
 
+可以将这种循环过程展开，想象成多个网络的连接：
+![RNN网络展开：将RNN按时序展开成多个网络的连接]({{"/assets/rnn_time.png"|RNN网络展开}})
 
-RNN的原理就简单到这里，如果想详细了解，我建议去读者看看[这篇论文](ref: a critical review of recurrent neural networks for sequence learning)。
+RNN可以处理不同长度的数据输出（例如不同长度的句子），找到这些数据在时间上的关联性（句子开头的词和后面词的关系），然后利用从这些信息，去完成各种工作（如翻译为另一种语言、回答问题等等），这种RNN网络的能力是很强的（[与图灵机等价](http://people.cs.georgetown.edu/~cnewport/teaching/cosc844-spring17/pubs/nn-tm.pdf)）。
 
-基本RNN
+RNN的原理就简单到这里，如果想详细了解，我建议去读者看看[这篇论文](https://arxiv.org/abs/1506.00019)。
 
+下面我们就来用Tensorflow写一个基本RNN。
+
+首先将import必要的包：
+
+```python
 from __future__ import print_function, division
 import numpy as np
 import tensorflow as tf
 import matplotlib.pyplot as plt
+```
 
+```python
 num_epochs = 100
 total_series_length = 50000
 truncated_backprop_length = 15
@@ -40,7 +49,9 @@ num_classes = 2
 echo_step = 3
 batch_size = 5
 num_batches = total_series_length//batch_size//truncated_backprop_length
+```
 
+```python
 def generateData():
     x = np.array(np.random.choice(2, total_series_length, p=[0.5, 0.5]))
     y = np.roll(x, echo_step)
@@ -50,20 +61,25 @@ def generateData():
     y = y.reshape((batch_size, -1))
 
     return (x, y)
+```
 
+```python
 batchX_placeholder = tf.placeholder(tf.float32, [batch_size, truncated_backprop_length])
 batchY_placeholder = tf.placeholder(tf.int32, [batch_size, truncated_backprop_length])
 
 init_state = tf.placeholder(tf.float32, [batch_size, state_size])
+```
 
-
-
+```python
 W2 = tf.Variable(np.random.rand(state_size, num_classes),dtype=tf.float32)
 b2 = tf.Variable(np.zeros((1,num_classes)), dtype=tf.float32)
+```
 
+```python
 # Unpack columns
 inputs_series = tf.split(batchX_placeholder, truncated_backprop_length, 1)
 labels_series = tf.unstack(batchY_placeholder, axis=1)
+```
 
 # Forward passes
 cell = tf.contrib.rnn.BasicRNNCell(state_size)
